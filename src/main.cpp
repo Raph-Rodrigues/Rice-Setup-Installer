@@ -6,6 +6,12 @@
 #include <gtk/gtk.h>
 #include <gtkmm.h>
 #include <gtkmm/alertdialog.h>
+#include <gtkmm/box.h>
+#include <gtkmm/checkbutton.h>
+#include <gtkmm/enums.h>
+#include <gtkmm/expander.h>
+#include <gtkmm/label.h>
+#include <gtkmm/object.h>
 #include <gtkmm/widget.h>
 #include <iostream>
 #include <memory>
@@ -58,20 +64,20 @@ public:
   ~InitWindow() = default;
 
 protected:
-  // Tratador do sinal de clique
+  // Tratador do sinal de clique[cite: 13]
   void on_btn_clicked();
   void on_btn_install_clicked();
   void on_process_finished(int status);
 
-  // Elementos da interface (Widgets)
-  // utilitários
-  Gtk::CheckButton *create_checkbox(const std::string &label,
-                                    const std::string &tooltip);
-  void add_category(const std::string &title);
+  // utilitários de UI
+  Gtk::Box *add_category(const std::string &title);
+  Gtk::CheckButton *add_install_option(Gtk::Box *parent_box,
+                                       const std::string &label,
+                                       const std::string &tooltip,
+                                       const std::string &packages);
 
   // layout
-  Gtk::Box m_vbox_main{Gtk::Orientation::VERTICAL,
-                       10}; // caixa para organizar os itens na vertical
+  Gtk::Box m_vbox_main{Gtk::Orientation::VERTICAL, 10};
   Gtk::Label m_title, m_txt_distro;
 
   // area rolavel
@@ -80,7 +86,6 @@ protected:
 
   // Check box
   Gtk::CheckButton *m_ck_shell;
-  // TODO: add more check boxes
 
   // console
   Gtk::ScrolledWindow m_scroll_console;
@@ -89,13 +94,7 @@ protected:
   Gtk::Button m_btn_check_distro;
   Gtk::Button m_btn_install;
 
-  // multithreading
   std::string m_distro_name;
-  std::thread m_thread_installation;
-  Glib::Dispatcher m_dispatcher; // comunica thread com UI
-  std::mutex m_mutex;
-  std::queue<std::string> m_msg_stack;
-  bool m_finalized_process = false;
 };
 
 // Construtor da janela
@@ -126,34 +125,40 @@ InitWindow::InitWindow()
   m_scroll_options.set_margin_start(20);
   m_scroll_options.set_margin_end(20);
 
-  add_category("Set Appearance");
-  m_vbox_options.append(*create_checkbox(
-      "Wallpaper", "Downloads and sets up the wallpaper from my repo."));
+  // =========================================================================
+  // OPÇÕES DE INSTALAÇÃO (COM EXPANDERS)
+  // =========================================================================
+  auto box_appearance = add_category("Set Appearance");
+  add_install_option(box_appearance, "Wallpaper",
+                     "Downloads and sets up the wallpaper from my repo.", "");
 
-  add_category("System and Interface");
-  m_ck_shell = create_checkbox("Shell (fish)",
-                               "Installs the Fish Shell and sets as main shell "
-                               "in your system, clones my rice for fish");
-  m_vbox_options.append(*m_ck_shell);
-  m_vbox_options.append(*create_checkbox(
-      "WM/DE", "Installs a Window Manager or Desktop Environment"));
+  auto box_system = add_category("System and Interface");
+  m_ck_shell =
+      add_install_option(box_system, "Shell (fish)",
+                         "Installs the Fish Shell and sets as main shell in "
+                         "your system, clones my rice for fish",
+                         "• fish\n• starship\n• fastfetch\n• eza");
+  add_install_option(box_system, "WM/DE",
+                     "Installs a Window Manager or Desktop Environment",
+                     "• bspwm\n• sxhkd\n• polybar\n• rofi");
 
-  add_category("Softwares");
-  m_vbox_options.append(*create_checkbox(
-      "Development", "Installs asdf, compilers, code editors and etc"));
-  m_vbox_options.append(
-      *create_checkbox("Games", "Installs lutris, steam, heroic game launcher, "
-                                "video drivers, wine, proton"));
-  m_vbox_options.append(*create_checkbox(
-      "Productivity / Study / Work",
-      "Installs browser, office package, pdfs readers, obsidian, etc"));
+  auto box_software = add_category("Softwares");
+  add_install_option(box_software, "Development",
+                     "Installs asdf, compilers, code editors and etc",
+                     "• asdf-vm\n• gcc\n• neovim");
+  add_install_option(box_software, "Games",
+                     "Installs lutris, steam, heroic game launcher, video "
+                     "drivers, wine, proton",
+                     "• lutris\n• steam\n• heroic");
+  add_install_option(
+      box_software, "Productivity / Study / Work",
+      "Installs browser, office package, pdfs readers, obsidian, etc",
+      "• firefox\n• libreoffice\n• obsidian");
 
   m_vbox_main.append(m_scroll_options);
 
   // botão checar distro
-  // Configura uma margem ao redor do botão
   m_btn_check_distro.set_halign(Gtk::Align::CENTER);
-  // Conecta o evento de clique do botão à nossa função usando sigc::mem_fun
   m_btn_check_distro.signal_clicked().connect(
       sigc::mem_fun(*this, &InitWindow::on_btn_clicked));
   m_vbox_main.append(m_btn_check_distro);
@@ -166,12 +171,9 @@ InitWindow::InitWindow()
 
   // console de saída
   m_vte_term = vte_terminal_new();
-
   gtk_scrolled_window_set_child(m_scroll_console.gobj(), m_vte_term);
-
   m_scroll_console.set_size_request(-1, 200);
   m_scroll_console.set_margin(10);
-
   m_vbox_main.append(m_scroll_console);
 
   g_signal_connect(
@@ -182,23 +184,69 @@ InitWindow::InitWindow()
       }),
       this);
 
-  // adiciona box como filha da Janela principal
   set_child(m_vbox_main);
 }
 
-void InitWindow::add_category(const std::string &title) {
+// Cria um expansor (categoria) e retorna a caixa interna para adicionar itens
+// nela
+Gtk::Box *InitWindow::add_category(const std::string &title) {
+  auto expander = Gtk::make_managed<Gtk::Expander>();
+
+  // Customizando a fonte do título da categoria
   auto label = Gtk::make_managed<Gtk::Label>();
   label->set_markup("<span weight='bold' size='large'>" + title + "</span>");
-  label->set_halign(Gtk::Align::START);
-  label->set_margin_top(15);
-  label->set_margin_bottom(5);
-  m_vbox_options.append(*label);
+  expander->set_label_widget(*label);
+  expander->set_expanded(true); // Deixa a categoria aberta por padrão
+  expander->set_margin_top(10);
+
+  // Caixa que guardará as checkboxes
+  auto vbox = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::VERTICAL, 5);
+  vbox->set_margin_start(15); // recuo pra os filhos
+  vbox->set_margin_top(5);
+
+  expander->set_child(*vbox);
+  m_vbox_options.append(*expander);
+
+  return vbox;
 }
 
-Gtk::CheckButton *InitWindow::create_checkbox(const std::string &label,
-                                              const std::string &tooltip) {
+Gtk::CheckButton *InitWindow::add_install_option(Gtk::Box *parent_box,
+                                                 const std::string &label,
+                                                 const std::string &tooltip,
+                                                 const std::string &packages) {
+  // Container vertical para agrupar o botão e a lista de pacotes
+  auto item_box = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::VERTICAL, 2);
+
   auto chk = Gtk::make_managed<Gtk::CheckButton>(label);
   chk->set_tooltip_text(tooltip);
+  item_box->append(*chk);
+
+  // Só cria a lista colapsável se a string de pacotes não for vazia
+  if (!packages.empty()) {
+    auto pkg_expander =
+        Gtk::make_managed<Gtk::Expander>("Packages to be installed");
+    pkg_expander->set_margin_start(
+        28); // Recuo para alinhar com o texto do checkbox
+
+    // lista de pacotes
+    auto pkg_label = Gtk::make_managed<Gtk::Label>(packages);
+    pkg_expander->set_halign(Gtk::Align::START);
+    pkg_expander->set_margin_start(10);
+    pkg_expander->set_margin_top(5);
+    pkg_expander->set_margin_bottom(5);
+
+    pkg_expander->set_child(*pkg_label);
+    pkg_expander->set_visible(false); // Escondido por padrão
+
+    // Oculta ou mostra o Expander sempre que a checkbox for marcada/desmarcada
+    chk->signal_toggled().connect([chk, pkg_expander]() {
+      pkg_expander->set_visible(chk->get_active());
+    });
+
+    item_box->append(*pkg_expander);
+  }
+
+  parent_box->append(*item_box);
   return chk;
 }
 
@@ -220,7 +268,7 @@ void InitWindow::on_btn_clicked() {
 void InitWindow::on_btn_install_clicked() {
   m_btn_install.set_sensitive(false);
 
-  std::string init_msg = "\r\n\003[1;36m==>\033[0m \033[1;Inicializing the "
+  std::string init_msg = "\r\n\033[1;36m==>\033[0m \033[1;Inicializing the "
                          "configuration process...\033[0m\r\n";
   vte_terminal_feed(VTE_TERMINAL(m_vte_term), init_msg.c_str(), -1);
 

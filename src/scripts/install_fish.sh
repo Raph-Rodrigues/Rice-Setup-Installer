@@ -40,7 +40,7 @@ print_warning() { echo -e "${C_YELLOW}[ WARN ]${C_RESET} $1"; }
 check_dependencies() {
   print_step "Checking required packages..."
   local all_installed=true
-  local pkgs=("fish" "git" "starship" "fastfetch")
+  local pkgs=("fish" "git" "starship" "fastfetch" "eza")
 
   for pkg in "${pkgs[@]}"; do
     if command -v "$pkg" >/dev/null 2>&1; then
@@ -59,11 +59,11 @@ instalar_pacotes() {
 
   if command -v pacman >/dev/null 2>&1; then
     print_info "Arch Linux / Derivatives (pacman) detected."
-    pkexec pacman -S --noconfirm fish git starship fastfetch
+    pkexec pacman -S --noconfirm fish git starship fastfetch eza
 
   elif command -v dnf >/dev/null 2>&1; then
     print_info "Fedora detected (dnf)."
-    pkexec dnf install -y fish git fastfetch starship
+    pkexec dnf install -y fish git fastfetch starship eza
 
   elif command -v apt-get >/dev/null 2>&1; then
     print_info "Ubuntu / Debian / Derivatives (apt) detected."
@@ -72,18 +72,18 @@ instalar_pacotes() {
     apt-get install -y software-properties-common curl && \
     add-apt-repository -y ppa:zhangsongcui3371/fastfetch && \
     apt-get update && \
-    apt-get install -y fish git fastfetch"
+    apt-get install -y fish git fastfetch eza"
 
     print_info "Installing Starship (via official script)..."
     curl -sS https://starship.rs/install.sh | pkexec sh -s -- -y
 
   elif command -v xbps-install >/dev/null 2>&1; then
     print_info "Void Linux detected (xbps)."
-    pkexec xbps-install -Sy fish-shell git fastfetch starship
+    pkexec xbps-install -Sy fish-shell git fastfetch starship eza
 
   else
     print_error "Distribution or package manager not supported."
-    print_error "Please install 'fish', 'git', 'fastfetch' and 'starship' manually."
+    print_error "Please install 'fish', 'git', 'fastfetch', 'eza' and 'starship' manually."
     exit 1
   fi
 }
