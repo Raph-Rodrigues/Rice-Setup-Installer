@@ -1,0 +1,3 @@
+/home/tucello/Documentos/programming/personal/rice-setup-installer-gtk/CMakeFiles/installer_rice-setup.dir
+/home/tucello/Documentos/programming/personal/rice-setup-installer-gtk/CMakeFiles/edit_cache.dir
+/home/tucello/Documentos/programming/personal/rice-setup-installer-gtk/CMakeFiles/rebuild_cache.dir
