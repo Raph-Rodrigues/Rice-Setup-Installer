@@ -2,6 +2,13 @@
 #include "utils.hpp"
 #include <glib.h>
 #include <gtkmm/alertdialog.h>
+#include <gtkmm/box.h>
+#include <gtkmm/checkbutton.h>
+#include <gtkmm/enums.h>
+#include <gtkmm/expander.h>
+#include <gtkmm/object.h>
+#include <string>
+#include <vector>
 #include <vte/vte.h>
 
 InitWindow::InitWindow()
@@ -67,9 +74,36 @@ InitWindow::InitWindow()
   }
 
   auto box_software = add_category("Softwares");
-  add_install_option(box_software, "Development",
-                     "Installs asdf, compilers, code editors and etc",
-                     "• asdf-vm\n• gcc\n• neovim");
+
+  auto exp_dev = Gtk::make_managed<Gtk::Expander>("Development Tools");
+  exp_dev->set_margin_start(15);
+  auto vbox_dev = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::VERTICAL, 2);
+  vbox_dev->set_margin_start(10);
+  vbox_dev->set_margin_top(5);
+
+  std::vector<std::string> dev_list = {
+      "vscode",     "vscodium", "neovim",
+      "zeditor",    "rider",    "intellij-community",
+      "godot-hub",  "bottles",  "unity-hub",
+      "asdf-vm",    "lua51",    "lua54",
+      "lua55",      "luajit",   "luarocks",
+      "git",        "lazygit",  "docker",
+      "lazydocker", "gcc",      "make",
+      "cmake",      "love2d",   "lovr",
+      "dotnet-10",  "dotnet-9", "dotnet-8",
+      "sdl2",       "sdl3",     "sfml2",
+      "sfml3",      "opengl",   "vulkan",
+      "raylib"};
+
+  for (const auto &tool : dev_list) {
+    auto chk = Gtk::make_managed<Gtk::CheckButton>(tool);
+    vbox_dev->append(*chk);
+    m_dev_tools_checks.push_back({tool, chk});
+  }
+
+  exp_dev->set_child(*vbox_dev);
+  box_software->append(*exp_dev);
+
   add_install_option(box_software, "Games",
                      "Installs lutris, steam, heroic game launcher, video "
                      "drivers, wine, proton",
@@ -196,6 +230,19 @@ void InitWindow::on_btn_install_clicked() {
   if (m_ck_rpmfusion && m_ck_rpmfusion->get_active())
     m_script_queue.push("./scripts/install_rpmfusion.sh");
 
+  // coleta todas as ferramentas de desenvolvimento selecionadas
+  std::string dev_args = "";
+  for (const auto &pair : m_dev_tools_checks) {
+    if (pair.second->get_active()) {
+      dev_args += pair.first + " ";
+    }
+  }
+
+  // se houver ferramentas selecionadas, adiciona script com argumentos na fila
+  if (!dev_args.empty()) {
+    m_script_queue.push("./scripts/install_dev_tools.sh " + dev_args);
+  }
+
   std::string init_msg = "\r\n\033[1;36m==>\033[0m \033[1;33mInicializing the "
                          "configuration process...\033[0m\r\n";
   vte_terminal_feed(VTE_TERMINAL(m_vte_term), init_msg.c_str(), -1);
@@ -209,12 +256,12 @@ void InitWindow::run_next_script() {
     return;
   }
 
-  std::string script_path = m_script_queue.front();
+  std::string current_cmd = m_script_queue.front();
   m_script_queue.pop();
 
-  static std::string current_script;
-  current_script = script_path;
-  const char *argv[] = {"/bin/bash", current_script.c_str(), nullptr};
+  static std::string safe_cmd;
+  safe_cmd = current_cmd;
+  const char *argv[] = {"/bin/bash", "-c", safe_cmd.c_str(), nullptr};
 
   vte_terminal_spawn_async(VTE_TERMINAL(m_vte_term), VTE_PTY_DEFAULT, nullptr,
                            (char **)argv, nullptr, G_SPAWN_DEFAULT, nullptr,

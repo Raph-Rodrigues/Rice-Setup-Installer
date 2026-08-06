@@ -4,6 +4,8 @@
 #include <gtkmm/checkbutton.h>
 #include <queue>
 #include <string>
+#include <utility>
+#include <vector>
 #include <vte/vte.h>
 
 class InitWindow : public Gtk::Window {
@@ -50,6 +52,9 @@ protected:
   // Botões
   Gtk::Button m_btn_check_distro;
   Gtk::Button m_btn_install;
+
+  // Armazena os ponteiros para os checkboxes de desenvolvimento
+  std::vector<std::pair<std::string, Gtk::CheckButton *>> m_dev_tools_checks;
 
   // Variáveis de estado
   std::string m_distro_name;
