@@ -39,8 +39,25 @@ InitWindow::InitWindow()
 
   // Categorias e Opções
   auto box_appearance = add_category("Set Appearance");
-  add_install_option(box_appearance, "Wallpaper",
-                     "Downloads and sets up the wallpaper from my repo.", "");
+  m_ck_wallpaper =
+      add_install_option(box_appearance, "Wallpaper",
+                         "Downloads and creates the Wallpaer folder on the "
+                         "pictures folder on the user directories.",
+                         "");
+  m_ck_icons = add_install_option(
+      box_appearance, "Ícones (Papirus)",
+      "Installs the Papirus theme, nwg-look, kvantum and sets up as the main "
+      "icon theme on the system",
+      "• papirus-icon-theme\n• papirus-folders\n• nwg-look\n• kvantum");
+  m_ck_cursors =
+      add_install_option(box_appearance, "Cursors (Bibata)",
+                         "Install the cursor Bibata Modern Classic theme and "
+                         "sets on the GTK, QT and Flatpaks",
+                         "• bibata-cursor-theme");
+  m_ck_login = add_install_option(box_appearance, "Login Display (SDDM)",
+                                  "Install the sddm on the system if necessary "
+                                  "and then sets a theme on sddm",
+                                  "sddm");
 
   auto box_system = add_category("System and Interface");
   m_ck_shell =
@@ -48,6 +65,19 @@ InitWindow::InitWindow()
                          "Installs the Fish Shell and sets as main shell in "
                          "your system, clones my rice for fish",
                          "• fish\n• starship\n• fastfetch\n• eza");
+  m_ck_terminal = add_install_option(
+      box_system, "Terminal (Kitty)",
+      "Installs the Kitty emulator terminal and sets my rice for kitty",
+      "kitty, ttf-jetbrains-mono-nerd");
+  m_ck_shader_boost =
+      add_install_option(box_system, "Shader Boost",
+                         "Clones the psygrep repo and runs the script for "
+                         "improve the shader cache on the system",
+                         "");
+  m_ck_filemanager = add_install_option(
+      box_system, "File Manager",
+      "Installs a graphical file manager and TUI file manager",
+      "• thunar\n• yazi\n");
   add_install_option(box_system, "WM/DE",
                      "Installs a Window Manager or Desktop Environment",
                      "• bspwm\n• sxhkd\n• polybar\n• rofi");
@@ -214,6 +244,13 @@ void InitWindow::on_btn_install_clicked() {
 
   if (m_ck_shell->get_active())
     m_script_queue.push("./scripts/install_fish.sh");
+  if (m_ck_terminal->get_active())
+    m_script_queue.push("./scripts/install_terminal.sh");
+  if (m_ck_filemanager->get_active())
+    m_script_queue.push("./scripts/install_filemanager.sh");
+  if (m_ck_shader_boost->get_active())
+    m_script_queue.push("./scripts/install_shaderboost.sh");
+
   if (m_ck_flatpak->get_active())
     m_script_queue.push("./scripts/install_flatpak.sh");
   if (m_ck_homebrew->get_active())
@@ -222,6 +259,15 @@ void InitWindow::on_btn_install_clicked() {
     m_script_queue.push("./scripts/install_snap.sh");
   if (m_ck_nix->get_active())
     m_script_queue.push("./scripts/install_nix.sh");
+
+  if (m_ck_wallpaper->get_active())
+    m_script_queue.push("./scripts/install_wallpaper.sh");
+  if (m_ck_cursors->get_active())
+    m_script_queue.push("./scripts/install_cursors.sh");
+  if (m_ck_icons->get_active())
+    m_script_queue.push("./scripts/install_icons.sh");
+  if (m_ck_login->get_active())
+    m_script_queue.push("./scripts/install_sddm.sh");
 
   if (m_ck_paru && m_ck_paru->get_active())
     m_script_queue.push("./scripts/install_paru.sh");

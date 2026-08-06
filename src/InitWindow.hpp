@@ -37,6 +37,13 @@ protected:
 
   // Checkboxes
   Gtk::CheckButton *m_ck_shell;
+  Gtk::CheckButton *m_ck_terminal;
+  Gtk::CheckButton *m_ck_shader_boost;
+  Gtk::CheckButton *m_ck_filemanager;
+  Gtk::CheckButton *m_ck_wallpaper;
+  Gtk::CheckButton *m_ck_icons;
+  Gtk::CheckButton *m_ck_cursors;
+  Gtk::CheckButton *m_ck_login;
   Gtk::CheckButton *m_ck_flatpak = nullptr;
   Gtk::CheckButton *m_ck_homebrew = nullptr;
   Gtk::CheckButton *m_ck_snap = nullptr;
