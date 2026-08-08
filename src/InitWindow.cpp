@@ -8,6 +8,7 @@
 #include <gtkmm/expander.h>
 #include <gtkmm/object.h>
 #include <string>
+#include <utility>
 #include <vector>
 #include <vte/vte.h>
 
@@ -68,7 +69,7 @@ InitWindow::InitWindow()
   m_ck_terminal = add_install_option(
       box_system, "Terminal (Kitty)",
       "Installs the Kitty emulator terminal and sets my rice for kitty",
-      "kitty, ttf-jetbrains-mono-nerd");
+      "• kitty\n• jetbrains-mono-nerd\n• iosevka-nerd");
   m_ck_shader_boost =
       add_install_option(box_system, "Shader Boost",
                          "Clones the psygrep repo and runs the script for "
@@ -111,24 +112,53 @@ InitWindow::InitWindow()
   vbox_dev->set_margin_start(10);
   vbox_dev->set_margin_top(5);
 
-  std::vector<std::string> dev_list = {
-      "vscode",     "vscodium", "neovim",
-      "zeditor",    "rider",    "intellij-community",
-      "godot-hub",  "bottles",  "unity-hub",
-      "asdf-vm",    "lua51",    "lua54",
-      "lua55",      "luajit",   "luarocks",
-      "git",        "lazygit",  "docker",
-      "lazydocker", "gcc",      "make",
-      "cmake",      "love2d",   "lovr",
-      "dotnet-10",  "dotnet-9", "dotnet-8",
-      "sdl2",       "sdl3",     "sfml2",
-      "sfml3",      "opengl",   "vulkan",
-      "raylib"};
+  std::vector<std::pair<std::string, std::string>> dev_list = {
+      {"vscode", "Most popular Microsoft Code Editor"},
+      {"vscodium", "Open Source version of Visual Studio Code"},
+      {"neovim", "Terminal code editor, fork from Vim Terminal code editor"},
+      {"zeditor", "High Performance Code Editor written in Rust"},
+      {"rider", "IDE cross-platform for .Dotnet made by JetBrains"},
+      {"intellij-community", "IDE opensource for Java made by JetBrains"},
+      {"godot-hub", "Version manager for Godot Engine"},
+      {"bottles", "Execute softwares and games from Windows easily on Linux"},
+      {"unity-hub", "Project and Unity-Editor version hub manager"},
+      {"asdf-vm", "Version manager for Development tools like programming "
+                  "languages and compilers"},
+      {"lua51", "Lua brazilliam programming language version 5.1"},
+      {"lua54", "Lua brazilliam programming language version 5.4"},
+      {"lua55", "Lua brazilliam programming language version 5.5"},
+      {"luajit", "Compiler Just-In-Time for Lua programming language"},
+      {"luarocks", "Package manager for Lua modules"},
+      {"git", "Version control system made by Linus Torvalds the creator of "
+              "Kernel Linux"},
+      {"lazygit", "TUI for git commands"},
+      {"docker", "Platform for criation and execution of containers"},
+      {"lazydocker", "TUI for manage docker"},
+      {"gcc", "Colection of compilers GNU (C, C++, etc)"},
+      {"make", "Classic tool of compilation"},
+      {"cmake", "Cross-platform tool to manage builds and dependencies"},
+      {"love2d", "Game Framework for 2D games with Lua"},
+      {"lovr", "Game Framework for 3D games with Lua"},
+      {"dotnet-10", "SDK version 10 from .NET ecossistem"},
+      {"dotnet-9", "SDK version 9 from .NET ecossistem"},
+      {"dotnet-8", "SDK version 8 from .NET ecossistem"},
+      {"sdl2", "Low level Multimedia Library v2"},
+      {"sdl3", "Low level Multimedia Library v3"},
+      {"sfml2", "Simple and Fast Multimedia Library (version 2.x)"},
+      {"sfml3", "Simple and Fast Multimedia Library (version 3.x)"},
+      {"opengl", "API cross-platform for 2D and 3D graphics"},
+      {"vulkan", "Graphical API and 3D computing of low overhead"},
+      {"raylib", "Simple game library for 3D and 2D Games with C and C++"},
+      {"fresh-editor", "TUI code editor simple and fast"},
+      {"opencode", "Code AI agent opensource"},
+      {"claude-code", "Claude Code CLI code AI agent"}};
 
-  for (const auto &tool : dev_list) {
-    auto chk = Gtk::make_managed<Gtk::CheckButton>(tool);
+  for (const auto &pair : dev_list) {
+    auto chk = Gtk::make_managed<Gtk::CheckButton>(pair.first);
+    chk->set_tooltip_text(pair.second);
+
     vbox_dev->append(*chk);
-    m_dev_tools_checks.push_back({tool, chk});
+    m_dev_tools_checks.push_back({pair.first, chk});
   }
 
   exp_dev->set_child(*vbox_dev);
