@@ -1,4 +1,5 @@
 #include "InitWindow.hpp"
+#include "ConfigData.hpp"
 #include "utils.hpp"
 #include <glib.h>
 #include <gtkmm/alertdialog.h>
@@ -15,12 +16,22 @@
 InitWindow::InitWindow()
     : m_btn_check_distro("Verify your Distro Linux"),
       m_btn_install("Install Configurations") {
-
   set_title("Rice Installer");
   set_default_size(600, 700);
 
   m_distro_name = get_distro();
 
+  setup_main_layout();
+  build_appearance_category();
+  build_system_category();
+  build_repos_category();
+  build_software_category();
+  setup_terminal();
+
+  set_child(m_vbox_main);
+}
+
+void InitWindow::setup_main_layout() {
   m_title.set_markup("<span size='xx-large' weight='bold'>Welcome!</span>");
   m_title.set_halign(Gtk::Align::CENTER);
   m_title.set_margin_top(20);
@@ -38,7 +49,20 @@ InitWindow::InitWindow()
   m_scroll_options.set_margin_start(20);
   m_scroll_options.set_margin_end(20);
 
-  // Categorias e Opções
+  m_vbox_main.append(m_scroll_options);
+
+  m_btn_check_distro.set_halign(Gtk::Align::CENTER);
+  m_btn_check_distro.signal_clicked().connect(
+      sigc::mem_fun(*this, &InitWindow::on_btn_clicked));
+  m_vbox_main.append(m_btn_check_distro);
+
+  m_btn_install.set_margin(10);
+  m_btn_install.signal_clicked().connect(
+      sigc::mem_fun(*this, &InitWindow::on_btn_install_clicked));
+  m_vbox_main.append(m_btn_install);
+}
+
+void InitWindow::build_appearance_category() {
   auto box_appearance = add_category("Set Appearance");
   m_ck_wallpaper =
       add_install_option(box_appearance, "Wallpaper",
@@ -59,7 +83,9 @@ InitWindow::InitWindow()
                                   "Install the sddm on the system if necessary "
                                   "and then sets a theme on sddm",
                                   "sddm");
+}
 
+void InitWindow::build_system_category() {
   auto box_system = add_category("System and Interface");
   m_ck_shell =
       add_install_option(box_system, "Shell (fish)",
@@ -82,7 +108,9 @@ InitWindow::InitWindow()
   add_install_option(box_system, "WM/DE",
                      "Installs a Window Manager or Desktop Environment",
                      "• bspwm\n• sxhkd\n• polybar\n• rofi");
+}
 
+void InitWindow::build_repos_category() {
   auto box_repos = add_category("Repositories and Package Managers");
   m_ck_flatpak =
       add_install_option(box_repos, "Flatpak", "Universally distributed apps",
@@ -103,7 +131,9 @@ InitWindow::InitWindow()
     m_ck_rpmfusion = add_install_option(box_repos, "RPM Fusion",
                                         "Community driven RPMs", "rpm-fusion");
   }
+}
 
+void InitWindow::build_software_category() {
   auto box_software = add_category("Softwares");
 
   auto exp_dev = Gtk::make_managed<Gtk::Expander>("Development Tools");
@@ -112,48 +142,7 @@ InitWindow::InitWindow()
   vbox_dev->set_margin_start(10);
   vbox_dev->set_margin_top(5);
 
-  std::vector<std::pair<std::string, std::string>> dev_list = {
-      {"vscode", "Most popular Microsoft Code Editor"},
-      {"vscodium", "Open Source version of Visual Studio Code"},
-      {"neovim", "Terminal code editor, fork from Vim Terminal code editor"},
-      {"zeditor", "High Performance Code Editor written in Rust"},
-      {"rider", "IDE cross-platform for .Dotnet made by JetBrains"},
-      {"intellij-community", "IDE opensource for Java made by JetBrains"},
-      {"godot-hub", "Version manager for Godot Engine"},
-      {"bottles", "Execute softwares and games from Windows easily on Linux"},
-      {"unity-hub", "Project and Unity-Editor version hub manager"},
-      {"asdf-vm", "Version manager for Development tools like programming "
-                  "languages and compilers"},
-      {"lua51", "Lua brazilliam programming language version 5.1"},
-      {"lua54", "Lua brazilliam programming language version 5.4"},
-      {"lua55", "Lua brazilliam programming language version 5.5"},
-      {"luajit", "Compiler Just-In-Time for Lua programming language"},
-      {"luarocks", "Package manager for Lua modules"},
-      {"git", "Version control system made by Linus Torvalds the creator of "
-              "Kernel Linux"},
-      {"lazygit", "TUI for git commands"},
-      {"docker", "Platform for criation and execution of containers"},
-      {"lazydocker", "TUI for manage docker"},
-      {"gcc", "Colection of compilers GNU (C, C++, etc)"},
-      {"make", "Classic tool of compilation"},
-      {"cmake", "Cross-platform tool to manage builds and dependencies"},
-      {"love2d", "Game Framework for 2D games with Lua"},
-      {"lovr", "Game Framework for 3D games with Lua"},
-      {"dotnet-10", "SDK version 10 from .NET ecossistem"},
-      {"dotnet-9", "SDK version 9 from .NET ecossistem"},
-      {"dotnet-8", "SDK version 8 from .NET ecossistem"},
-      {"sdl2", "Low level Multimedia Library v2"},
-      {"sdl3", "Low level Multimedia Library v3"},
-      {"sfml2", "Simple and Fast Multimedia Library (version 2.x)"},
-      {"sfml3", "Simple and Fast Multimedia Library (version 3.x)"},
-      {"opengl", "API cross-platform for 2D and 3D graphics"},
-      {"vulkan", "Graphical API and 3D computing of low overhead"},
-      {"raylib", "Simple game library for 3D and 2D Games with C and C++"},
-      {"fresh-editor", "TUI code editor simple and fast"},
-      {"opencode", "Code AI agent opensource"},
-      {"claude-code", "Claude Code CLI code AI agent"}};
-
-  for (const auto &pair : dev_list) {
+  for (const auto &pair : ConfigData::dev_tools) {
     auto chk = Gtk::make_managed<Gtk::CheckButton>(pair.first);
     chk->set_tooltip_text(pair.second);
 
@@ -172,35 +161,14 @@ InitWindow::InitWindow()
       box_software, "Productivity / Study / Work",
       "Installs browser, office package, pdfs readers, obsidian, etc",
       "• firefox\n• libreoffice\n• obsidian");
+}
 
-  m_vbox_main.append(m_scroll_options);
-
-  m_btn_check_distro.set_halign(Gtk::Align::CENTER);
-  m_btn_check_distro.signal_clicked().connect(
-      sigc::mem_fun(*this, &InitWindow::on_btn_clicked));
-  m_vbox_main.append(m_btn_check_distro);
-
-  m_btn_install.set_margin(10);
-  m_btn_install.signal_clicked().connect(
-      sigc::mem_fun(*this, &InitWindow::on_btn_install_clicked));
-  m_vbox_main.append(m_btn_install);
-
-  // Configuração do VTE Terminal
+void InitWindow::setup_terminal() {
   m_vte_term = vte_terminal_new();
   gtk_scrolled_window_set_child(m_scroll_console.gobj(), m_vte_term);
   m_scroll_console.set_size_request(-1, 200);
   m_scroll_console.set_margin(10);
   m_vbox_main.append(m_scroll_console);
-
-  g_signal_connect(
-      m_vte_term, "child-exited",
-      G_CALLBACK(+[](VteTerminal *terminal, gint status, gpointer user_data) {
-        auto *window = static_cast<InitWindow *>(user_data);
-        window->run_next_script();
-      }),
-      this);
-
-  set_child(m_vbox_main);
 }
 
 Gtk::Box *InitWindow::add_category(const std::string &title) {
@@ -269,42 +237,41 @@ void InitWindow::on_btn_clicked() {
 void InitWindow::on_btn_install_clicked() {
   m_btn_install.set_sensitive(false);
 
-  while (!m_script_queue.empty())
-    m_script_queue.pop();
+  m_script_manager.clear();
 
   if (m_ck_shell->get_active())
-    m_script_queue.push("./scripts/install_fish.sh");
+    m_script_manager.add_script("./scripts/install_fish.sh");
   if (m_ck_terminal->get_active())
-    m_script_queue.push("./scripts/install_terminal.sh");
+    m_script_manager.add_script("./scripts/install_terminal.sh");
   if (m_ck_filemanager->get_active())
-    m_script_queue.push("./scripts/install_filemanager.sh");
+    m_script_manager.add_script("./scripts/install_filemanager.sh");
   if (m_ck_shader_boost->get_active())
-    m_script_queue.push("./scripts/install_shaderboost.sh");
+    m_script_manager.add_script("./scripts/install_shaderboost.sh");
 
   if (m_ck_flatpak->get_active())
-    m_script_queue.push("./scripts/install_flatpak.sh");
+    m_script_manager.add_script("./scripts/install_flatpak.sh");
   if (m_ck_homebrew->get_active())
-    m_script_queue.push("./scripts/install_homebrew.sh");
+    m_script_manager.add_script("./scripts/install_homebrew.sh");
   if (m_ck_snap->get_active())
-    m_script_queue.push("./scripts/install_snap.sh");
+    m_script_manager.add_script("./scripts/install_snap.sh");
   if (m_ck_nix->get_active())
-    m_script_queue.push("./scripts/install_nix.sh");
+    m_script_manager.add_script("./scripts/install_nix.sh");
 
   if (m_ck_wallpaper->get_active())
-    m_script_queue.push("./scripts/install_wallpaper.sh");
+    m_script_manager.add_script("./scripts/install_wallpaper.sh");
   if (m_ck_cursors->get_active())
-    m_script_queue.push("./scripts/install_cursors.sh");
+    m_script_manager.add_script("./scripts/install_cursors.sh");
   if (m_ck_icons->get_active())
-    m_script_queue.push("./scripts/install_icons.sh");
+    m_script_manager.add_script("./scripts/install_icons.sh");
   if (m_ck_login->get_active())
-    m_script_queue.push("./scripts/install_sddm.sh");
+    m_script_manager.add_script("./scripts/install_sddm.sh");
 
   if (m_ck_paru && m_ck_paru->get_active())
-    m_script_queue.push("./scripts/install_paru.sh");
+    m_script_manager.add_script("./scripts/install_paru.sh");
   if (m_ck_chaotic && m_ck_chaotic->get_active())
-    m_script_queue.push("./scripts/install_chaotic_aur.sh");
+    m_script_manager.add_script("./scripts/install_chaotic_aur.sh");
   if (m_ck_rpmfusion && m_ck_rpmfusion->get_active())
-    m_script_queue.push("./scripts/install_rpmfusion.sh");
+    m_script_manager.add_script("./scripts/install_rpmfusion.sh");
 
   // coleta todas as ferramentas de desenvolvimento selecionadas
   std::string dev_args = "";
@@ -316,32 +283,15 @@ void InitWindow::on_btn_install_clicked() {
 
   // se houver ferramentas selecionadas, adiciona script com argumentos na fila
   if (!dev_args.empty()) {
-    m_script_queue.push("./scripts/install_dev_tools.sh " + dev_args);
+    m_script_manager.add_script("./scripts/install_dev_tools.sh " + dev_args);
   }
 
   std::string init_msg = "\r\n\033[1;36m==>\033[0m \033[1;33mInicializing the "
                          "configuration process...\033[0m\r\n";
   vte_terminal_feed(VTE_TERMINAL(m_vte_term), init_msg.c_str(), -1);
 
-  run_next_script();
-}
-
-void InitWindow::run_next_script() {
-  if (m_script_queue.empty()) {
-    on_process_finished(0);
-    return;
-  }
-
-  std::string current_cmd = m_script_queue.front();
-  m_script_queue.pop();
-
-  static std::string safe_cmd;
-  safe_cmd = current_cmd;
-  const char *argv[] = {"/bin/bash", "-c", safe_cmd.c_str(), nullptr};
-
-  vte_terminal_spawn_async(VTE_TERMINAL(m_vte_term), VTE_PTY_DEFAULT, nullptr,
-                           (char **)argv, nullptr, G_SPAWN_DEFAULT, nullptr,
-                           nullptr, nullptr, -1, nullptr, nullptr, nullptr);
+  m_script_manager.start(VTE_TERMINAL(m_vte_term),
+                         [this]() { on_process_finished(0); });
 }
 
 void InitWindow::on_process_finished(int status) {

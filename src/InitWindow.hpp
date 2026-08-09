@@ -1,8 +1,8 @@
 #pragma once
 
+#include "ScritpManager.hpp"
 #include <gtkmm.h>
 #include <gtkmm/checkbutton.h>
-#include <queue>
 #include <string>
 #include <utility>
 #include <vector>
@@ -18,7 +18,6 @@ protected:
   void on_btn_clicked();
   void on_btn_install_clicked();
   void on_process_finished(int status);
-  void run_next_script();
 
   // Utilitários de UI
   Gtk::Box *add_category(const std::string &title);
@@ -27,6 +26,18 @@ protected:
                                        const std::string &tooltip,
                                        const std::string &packages);
 
+private:
+  // separação de tarefas
+  void setup_main_layout();
+  void build_appearance_category();
+  void build_system_category();
+  void build_repos_category();
+  void build_software_category();
+  void setup_terminal();
+
+  ScriptManager m_script_manager;
+
+protected:
   // Layout principal
   Gtk::Box m_vbox_main{Gtk::Orientation::VERTICAL, 10};
   Gtk::Label m_title, m_txt_distro;
@@ -65,5 +76,4 @@ protected:
 
   // Variáveis de estado
   std::string m_distro_name;
-  std::queue<std::string> m_script_queue;
 };
