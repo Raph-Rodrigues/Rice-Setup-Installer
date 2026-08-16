@@ -1,4 +1,7 @@
 #include "ConfigData.hpp"
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace ConfigData {
 const std::vector<std::pair<std::string, std::string>> dev_tools = {
@@ -41,4 +44,25 @@ const std::vector<std::pair<std::string, std::string>> dev_tools = {
     {"fresh-editor", "TUI code editor simple and fast"},
     {"opencode", "Code AI agent opensource"},
     {"claude-code", "Claude Code CLI code AI agent"}};
-}
+
+const std::vector<std::pair<std::string, std::string>> wm_de_list = {
+    {"hyprland", "Hyprland with noctalia shell"},
+    {"cinnamon", "Cinnamon"},
+    {"kde-plasma", "KDE Plasma"},
+    {"gnome", "Gnome Desktop"},
+    {"kinetic", "KDE Plasma with noctalia shell"},
+    {"cosmic", "COSMIC DE"},
+    {"niri", "Niri with noctalia shell"}};
+
+const std::vector<std::pair<std::string, std::string>> game_tools = {
+    {"steam", "Steam client for Linux"},
+    {"lutris", "Open Source gaming platform for Linux"},
+    {"heroic", "Open Source GOG and Epic Games launcher"},
+    {"wine", "Run Windows applications on Linux"},
+    {"mangohud", "Vulkan and OpenGL overlay for monitoring FPS"},
+    {"gamemode", "Optimize Linux system performance on demand"},
+    {"proton-plus", "Manage Proton versions"},
+    {"bottles", "Run Windows applications on linux"},
+    {"protontricks", "Run wine tricks commands for Steam Play/Proton games "
+                     "among other common Wine features"}};
+} // namespace ConfigData

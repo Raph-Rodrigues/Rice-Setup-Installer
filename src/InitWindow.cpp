@@ -1,6 +1,8 @@
 #include "InitWindow.hpp"
 #include "ConfigData.hpp"
 #include "utils.hpp"
+#include <algorithm>
+#include <cctype>
 #include <glib.h>
 #include <gtkmm/alertdialog.h>
 #include <gtkmm/box.h>
@@ -105,9 +107,24 @@ void InitWindow::build_system_category() {
       box_system, "File Manager",
       "Installs a graphical file manager and TUI file manager",
       "• thunar\n• yazi\n");
-  add_install_option(box_system, "WM/DE",
-                     "Installs a Window Manager or Desktop Environment",
-                     "• bspwm\n• sxhkd\n• polybar\n• rofi");
+
+  auto exp_wm_de =
+      Gtk::make_managed<Gtk::Expander>("WM / DE (Desktop Environments)");
+  exp_wm_de->set_margin_start(15);
+  auto vbox_wm_de = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::VERTICAL, 2);
+  vbox_wm_de->set_margin_start(10);
+  vbox_wm_de->set_margin_top(5);
+
+  for (const auto &pair : ConfigData::wm_de_list) {
+    auto chk = Gtk::make_managed<Gtk::CheckButton>(pair.second);
+    chk->set_tooltip_text("Install: " + pair.second);
+
+    vbox_wm_de->append(*chk);
+    m_wm_de_checks.push_back({pair.first, chk});
+  }
+
+  exp_wm_de->set_child(*vbox_wm_de);
+  box_system->append(*exp_wm_de);
 }
 
 void InitWindow::build_repos_category() {
@@ -153,10 +170,46 @@ void InitWindow::build_software_category() {
   exp_dev->set_child(*vbox_dev);
   box_software->append(*exp_dev);
 
-  add_install_option(box_software, "Games",
-                     "Installs lutris, steam, heroic game launcher, video "
-                     "drivers, wine, proton",
-                     "• lutris\n• steam\n• heroic");
+  auto exp_games = Gtk::make_managed<Gtk::Expander>("Games");
+  exp_games->set_margin_start(15);
+  auto vbox_games = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::VERTICAL, 2);
+  vbox_games->set_margin_start(10);
+  vbox_games->set_margin_top(5);
+
+  // --- NOVA LÓGICA PARA DETECTAR CACHYOS NA UI ---
+  // Transforma o nome da distro em letras minúsculas para facilitar a busca
+  std::string lower_distro = m_distro_name;
+  std::transform(lower_distro.begin(), lower_distro.end(), lower_distro.begin(),
+                 ::tolower);
+
+  if (lower_distro.find("cachyos") != std::string::npos) {
+    // Se for CachyOS, exibe apenas os dois pacotes otimizados
+    auto chk_apps =
+        Gtk::make_managed<Gtk::CheckButton>("CachyOS Gaming Applications");
+    chk_apps->set_tooltip_text(
+        "Meta package com os melhores apps de jogos para CachyOS");
+    vbox_games->append(*chk_apps);
+    // Usamos o ID exato dos pacotes pacman no first
+    m_game_checks.push_back({"cachyos-gaming-applications", chk_apps});
+
+    auto chk_meta = Gtk::make_managed<Gtk::CheckButton>("CachyOS Gaming Meta");
+    chk_meta->set_tooltip_text("Meta package com dependências cruciais "
+                               "(vulkan, multilib, etc) para CachyOS");
+    vbox_games->append(*chk_meta);
+    m_game_checks.push_back({"cachyos-gaming-meta", chk_meta});
+  } else {
+    // Para as demais distribuições, renderiza a lista completa
+    for (const auto &pair : ConfigData::game_tools) {
+      auto chk = Gtk::make_managed<Gtk::CheckButton>(pair.first);
+      chk->set_tooltip_text(pair.second);
+      vbox_games->append(*chk);
+      m_game_checks.push_back({pair.first, chk});
+    }
+  }
+
+  exp_games->set_child(*vbox_games);
+  box_software->append(*exp_games);
+
   add_install_option(
       box_software, "Productivity / Study / Work",
       "Installs browser, office package, pdfs readers, obsidian, etc",
@@ -272,6 +325,28 @@ void InitWindow::on_btn_install_clicked() {
     m_script_manager.add_script("./scripts/install_chaotic_aur.sh");
   if (m_ck_rpmfusion && m_ck_rpmfusion->get_active())
     m_script_manager.add_script("./scripts/install_rpmfusion.sh");
+
+  std::string wm_de_args = "";
+  for (const auto &pair : m_wm_de_checks) {
+    if (pair.second->get_active()) {
+      wm_de_args += pair.first + " ";
+    }
+  }
+
+  if (!wm_de_args.empty()) {
+    m_script_manager.add_script("./scripts/install_wm_de.sh" + wm_de_args);
+  }
+
+  std::string game_args = "";
+  for (const auto &pair : m_game_checks) {
+    if (pair.second->get_active()) {
+      game_args += pair.first + " ";
+    }
+  }
+
+  if (!game_args.empty()) {
+    m_script_manager.add_script("./scripts/install_games.sh " + game_args);
+  }
 
   // coleta todas as ferramentas de desenvolvimento selecionadas
   std::string dev_args = "";
