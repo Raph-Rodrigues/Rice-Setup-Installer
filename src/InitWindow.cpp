@@ -210,10 +210,22 @@ void InitWindow::build_software_category() {
   exp_games->set_child(*vbox_games);
   box_software->append(*exp_games);
 
-  add_install_option(
-      box_software, "Productivity / Study / Work",
-      "Installs browser, office package, pdfs readers, obsidian, etc",
-      "• firefox\n• libreoffice\n• obsidian");
+  auto exp_prod =
+      Gtk::make_managed<Gtk::Expander>("Productivity / Study / Work");
+  exp_prod->set_margin_start(15);
+  auto vbox_prod = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::VERTICAL, 2);
+  vbox_prod->set_margin_start(10);
+  vbox_prod->set_margin_top(5);
+
+  for (const auto &pair : ConfigData::prod_tools) {
+    auto chk = Gtk::make_managed<Gtk::CheckButton>(pair.first);
+    chk->set_tooltip_text(pair.second);
+    vbox_prod->append(*chk);
+    m_prod_checks.push_back({pair.first, chk});
+  }
+
+  exp_prod->set_child(*vbox_prod);
+  box_software->append(*exp_prod);
 }
 
 void InitWindow::setup_terminal() {
@@ -354,6 +366,19 @@ void InitWindow::on_btn_install_clicked() {
     if (pair.second->get_active()) {
       dev_args += pair.first + " ";
     }
+  }
+
+  std::string prod_args = "";
+  for (const auto &pair : m_prod_checks) {
+    if (pair.second->get_active()) {
+      prod_args += pair.first + " ";
+    }
+  }
+
+  // Se houver ferramentas de produtividade selecionadas, adiciona na fila
+  if (!prod_args.empty()) {
+    m_script_manager.add_script("./scripts/install_productivity.sh " +
+                                prod_args);
   }
 
   // se houver ferramentas selecionadas, adiciona script com argumentos na fila

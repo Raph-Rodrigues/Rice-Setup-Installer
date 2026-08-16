@@ -74,11 +74,10 @@ protected:
 
   // Armazena os ponteiros para os checkboxes de desenvolvimento
   std::vector<std::pair<std::string, Gtk::CheckButton *>> m_dev_tools_checks;
-
   // Armazena os ponteiros para os checkboxes de WM/DE
   std::vector<std::pair<std::string, Gtk::CheckButton *>> m_wm_de_checks;
-
   std::vector<std::pair<std::string, Gtk::CheckButton *>> m_game_checks;
+  std::vector<std::pair<std::string, Gtk::CheckButton *>> m_prod_checks;
 
   // Variáveis de estado
   std::string m_distro_name;

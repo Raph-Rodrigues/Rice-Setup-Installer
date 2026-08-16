@@ -11,4 +11,6 @@ extern const std::vector<std::pair<std::string, std::string>> dev_tools;
 extern const std::vector<std::pair<std::string, std::string>> wm_de_list;
 
 extern const std::vector<std::pair<std::string, std::string>> game_tools;
+
+extern const std::vector<std::pair<std::string, std::string>> prod_tools;
 } // namespace ConfigData

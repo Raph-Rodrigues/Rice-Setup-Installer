@@ -65,4 +65,45 @@ const std::vector<std::pair<std::string, std::string>> game_tools = {
     {"bottles", "Run Windows applications on linux"},
     {"protontricks", "Run wine tricks commands for Steam Play/Proton games "
                      "among other common Wine features"}};
+
+const std::vector<std::pair<std::string, std::string>> prod_tools = {
+    // Browsers
+    {"firefox", "Mozilla Firefox Web Browser"},
+    {"brave-browser", "Brave Web Browser (Privacy focused)"},
+    {"chromium", "Chromium Web Browser (Open source basis for Chrome)"},
+    {"helium", "Lightweight browser focused on privacy based on chromium"},
+    {"librewolf", "privacy focused browser based on firefox"},
+    {"zen-browser", "firefox based browser"},
+
+    // Produtividade & Office
+    {"libreoffice",
+     "Complete open-source office suite (Writer, Calc, Impress)"},
+    {"obsidian", "Markdown-based knowledge base and note-taking app"},
+    {"thunderbird", "Open-source email, news, and chat client"},
+    {"xournalpp", "Handwriting note-taking software with PDF annotation"},
+
+    // Comunicação
+    {"discord", "Voice, video and text chat app"},
+    {"telegram-desktop", "Fast and secure messaging app"},
+
+    // Matemática, Ciências e Engenharia
+    {"geogebra", "Dynamic mathematics software for all levels of education"},
+    {"octave",
+     "Scientific programming language (open-source MATLAB alternative)"},
+    {"kicad", "EDA software suite for the creation of professional schematics "
+              "and printed circuit boards"},
+    {"freecad", "General purpose feature-based, parametric 3D modeler for CAD, "
+                "MCAD, CAx, CAE and PLM"},
+    {"avogadro",
+     "Advanced molecular editor and visualizer (Chemistry/Biology)"},
+    {"qalculate-gtk", "Multi-purpose cross-platform desktop calculator"},
+    {"scidavis", "Graphical tool to plot graphics"},
+    {"spyder", "Python DE for physics and engeneers"},
+
+    // Multimídia e Design
+    {"vlc", "VLC media player"},
+    {"obs-studio",
+     "Free and open source software for video recording and live streaming"},
+    {"gimp", "GNU Image Manipulation Program"},
+    {"inkscape", "Professional vector graphics editor"}};
 } // namespace ConfigData
