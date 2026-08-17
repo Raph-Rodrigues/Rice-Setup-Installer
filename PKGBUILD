@@ -1,6 +1,6 @@
 # Maintainer: Raph Rodrigues <raph.edits06@gmail.com>
 pkgname=installer_rice-setup
-pkgver=r16.91292ec
+pkgver=r17.1d52de7
 pkgrel=1
 pkgdesc="A graphical tool written in C++ and GTKmm to automate Linux ricing and installations"
 arch=('x86_64')
