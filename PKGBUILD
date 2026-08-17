@@ -1,6 +1,6 @@
 # Maintainer: Raph Rodrigues <raph.edits06@gmail.com>
 pkgname=installer_rice-setup
-pkgver=r13.fceab91
+pkgver=r14.b695da8
 pkgrel=1
 pkgdesc="A graphical tool written in C++ and GTKmm to automate Linux ricing and installations"
 arch=('x86_64')
@@ -37,7 +37,7 @@ package() {
 
   # 2. Copia o binário compilado (Assumindo que o CMake gera o executável chamado 'rice_installer')
   # Verifique o nome exato do executável gerado pelo seu CMakeLists.txt e ajuste abaixo se necessário
-  install -Dm755 build/rice_installer "$pkgdir/opt/installer_rice-setup/rice_installer"
+  install -Dm755 build/rice_installer "$pkgdir/opt/installer_rice-setup/installer_rice-setup"
 
   # 3. Copia a pasta de scripts mantendo as permissões de execução
   cp -r scripts "$pkgdir/opt/installer_rice-setup/"
@@ -48,7 +48,7 @@ package() {
   cat <<'EOF' >"$pkgdir/usr/bin/installer_rice-setup"
 #!/bin/bash
 cd /opt/installer_rice-setup
-./rice_installer
+./installer_rice-setup
 EOF
 
   # Dá permissão de execução ao wrapper
